@@ -1,0 +1,9 @@
+port: "8080"
+
+redis_url: "redis://localhost:6379"
+
+jwt_private_key: "./internal/gateway/jwt/rsa_private.pem"
+jwt_public_key: "./internal/gateway/jwt/rsa_public.pem"
+
+api_key_header: "X-API-KEY"
+jwt_header: "Authorization"
