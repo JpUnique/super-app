@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7
+    container_name: superapp-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  orders-8081:
+    image: golang:1.24-alpine
+    container_name: orders-8081
+    command: sh -c 'printf "package main\nimport(\"fmt\";\"log\";\"net/http\");func main(){http.HandleFunc(\"/health\",func(w http.ResponseWriter,_ *http.Request){w.WriteHeader(200);fmt.Fprint(w,\"ok\")});http.HandleFunc(\"/\",func(w http.ResponseWriter,r *http.Request){fmt.Fprintf(w,\"{\"\"svc\"\":\"\"orders-8081\"\",\"\"path\"\":\"\"%s\"\"}\", r.URL.Path)});log.Println(\"orders :8081\");log.Fatal(http.ListenAndServe(\":8081\", nil))}" > /tmp/svc.go && go run /tmp/svc.go'
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8081/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  orders-8082:
+    image: golang:1.24-alpine
+    container_name: orders-8082
+    command: sh -c 'printf "package main\nimport(\"fmt\";\"log\";\"net/http\");func main(){http.HandleFunc(\"/health\",func(w http.ResponseWriter,_ *http.Request){w.WriteHeader(200);fmt.Fprint(w,\"ok\")});http.HandleFunc(\"/\",func(w http.ResponseWriter,r *http.Request){fmt.Fprintf(w,\"{\"\"svc\"\":\"\"orders-8082\"\",\"\"path\"\":\"\"%s\"\"}\", r.URL.Path)});log.Println(\"orders :8082\");log.Fatal(http.ListenAndServe(\":8082\", nil))}" > /tmp/svc.go && go run /tmp/svc.go'
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8082/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: superapp-gateway
+    depends_on:
+      redis:
+        condition: service_healthy
+      orders-8081:
+        condition: service_healthy
+      orders-8082:
+        condition: service_healthy
+    environment:
+      LOG_FORMAT: "console"
+      LOG_LEVEL: "debug"
+      GATEWAY_PORT: "8080"
+      GATEWAY_REDIS_URL: "redis://redis:6379"
+      GATEWAY_JWT_PRIVATE_KEY: "/app/internal/gateway/jwt/rsa_private.pem"
+      GATEWAY_JWT_PUBLIC_KEY: "/app/internal/gateway/jwt/rsa_public.pem"
+      GATEWAY_API_KEY_HEADER: "X-API-KEY"
+      GATEWAY_JWT_HEADER: "Authorization"
+      SUPERAPP_ROUTES_FILE: "/app/internal/gateway/proxy/routes.yaml"
+    ports:
+      - "8080:8080"
+    command:
+      [
+        "/app/superapp",
+        "gateway",
+        "start",
+        "--config",
+        "/app/internal/gateway/config/config.yaml",
+        "--routes",
+        "/app/internal/gateway/proxy/routes.yaml",
+        "--port",
+        "8080",
+      ]

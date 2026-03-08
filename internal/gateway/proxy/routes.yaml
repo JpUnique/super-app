@@ -1,0 +1,77 @@
+# =====================================================================
+# YAML-Driven Routing Configuration for the Super-App API Gateway
+# =====================================================================
+# This file defines:
+#   1) Each microservice and its balancing strategy
+#   2) URL prefixes the gateway will forward to each service
+#   3) Whether to strip the prefix before forwarding upstream
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# Services
+# ---------------------------------------------------------------------
+services:
+
+  # ---- ACTIVE SERVICES ----
+  orders:
+    strategy: round_robin
+
+  # ---- FUTURE SERVICES (COMMENTED TO AVOID BREAKING ANYTHING) ----
+  # payments:
+  #   strategy: round_robin
+  #
+  # rides:
+  #   strategy: least_conn
+  #
+  # wallet:
+  #   strategy: round_robin
+  #
+  # food:
+  #   strategy: round_robin
+  #
+  # merchants:
+  #   strategy: round_robin
+  #
+  # notifications:
+  #   strategy: least_conn
+
+
+# ---------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------
+routes:
+
+  # ---- ACTIVE ORDER ROUTES ----
+  - prefix: "/v1/orders/"
+    service: "orders"
+    strip_prefix: true
+
+  - prefix: "/v2/orders/"
+    service: "orders"
+    strip_prefix: true
+
+
+  # ---- FUTURE ROUTES (COMMENTED TO PREVENT ERRORS) ----
+  # - prefix: "/v1/payments/"
+  #   service: "payments"
+  #   strip_prefix: true
+  #
+  # - prefix: "/v1/rides/"
+  #   service: "rides"
+  #   strip_prefix: true
+  #
+  # - prefix: "/v1/wallet/"
+  #   service: "wallet"
+  #   strip_prefix: true
+  #
+  # - prefix: "/v1/food/"
+  #   service: "food"
+  #   strip_prefix: true
+  #
+  # - prefix: "/v1/merchants/"
+  #   service: "merchants"
+  #   strip_prefix: true
+  #
+  # - prefix: "/v1/notifications/"
+  #   service: "notifications"
+  #   strip_prefix: true

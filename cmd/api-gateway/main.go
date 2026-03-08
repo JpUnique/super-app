@@ -36,21 +36,25 @@ func main() {
 	reg.Register(&loadbalancer.Backend{Name: "orders-1", URL: "http://localhost:8081"})
 	reg.Register(&loadbalancer.Backend{Name: "orders-2", URL: "http://localhost:8082"})
 
-	// 3b) Proxy routing rules (prefix -> service)
-	routes := []proxy.Route{
-		{Prefix: "/v1/orders/", ServiceName: "orders", StripPrefix: true},
-		{Prefix: "/v2/orders/", ServiceName: "orders", StripPrefix: true},
-		// TODO: add more services (payments, rides, food) as you build them
+	// 3b) Load proxy routing rules from YAML file
+	sr, strategies, err := proxy.LoadRoutesFromYAML(cfg.RoutesFile)
+	if err != nil {
+		log.Fatal("could not load routes:", err)
 	}
-	sr := proxy.NewStaticServiceRouter(routes)
 
 	// 3c) Balancers per service (RR/LC); you can mix & match
 	rr := loadbalancer.NewRoundRobin(reg)
-	//lc := loadbalancer.NewLeastConn(reg)
+	lc := loadbalancer.NewLeastConn(reg)
 
 	// 3d) Create proxy and assign strategies
 	px := proxy.New(reg, sr, nil) // default transport; customize later if needed
-	px.SetBalancer("orders", rr)  // or lc
+	for service, strategy := range strategies {
+		if strategy == "least_conn" {
+			px.SetBalancer(service, lc)
+		} else {
+			px.SetBalancer(service, rr) // default to round_robin
+		}
+	}
 
 	hc := loadbalancer.NewHealthChecker(reg, loadbalancer.HealthCheckerConfig{
 		Interval: 5 * time.Second,
@@ -102,8 +106,9 @@ func main() {
 	root.HandleFunc("/readyz", hh.Readiness)
 	root.HandleFunc("/health", hh.Readiness)
 
-	root.Handle("/v1/orders/", px)
-	root.Handle("/v2/orders/", px)
+	for _, prefix := range sr.Prefixes() {
+		root.Handle(prefix, px)
+	}
 
 	root.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {

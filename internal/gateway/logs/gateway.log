@@ -34,3 +34,11 @@
 {"time":"2026-02-27T01:36:20.683264+01:00","level":"INFO","msg":"http_request","subsystem":"gateway","method":"GET","path":"/readyz","query":"","status":200,"bytes":428,"ip":"::1","ua":"PostmanRuntime/7.39.1","proto":"HTTP/1.1","latency":439041}
 {"time":"2026-02-27T01:37:20.388337+01:00","level":"INFO","msg":"shutdown_signal_received","subsystem":"gateway"}
 {"time":"2026-02-27T01:37:20.890847+01:00","level":"INFO","msg":"server_shutdown_complete","subsystem":"gateway"}
+{"time":"2026-03-06T02:02:31.609676+01:00","level":"INFO","msg":"gateway_start","subsystem":"gateway","port":"8080"}
+{"time":"2026-03-06T02:02:31.612477+01:00","level":"INFO","msg":"http_listen","subsystem":"gateway","addr":":8080"}
+{"time":"2026-03-06T02:03:07.041546+01:00","level":"INFO","msg":"shutdown_signal_received","subsystem":"gateway"}
+{"time":"2026-03-06T02:03:07.544634+01:00","level":"INFO","msg":"server_shutdown_complete","subsystem":"gateway"}
+{"time":"2026-03-06T04:11:31.635919+01:00","level":"INFO","msg":"gateway_start","subsystem":"gateway","port":"8080"}
+{"time":"2026-03-06T04:11:31.637351+01:00","level":"INFO","msg":"http_listen","subsystem":"gateway","addr":":8080"}
+{"time":"2026-03-06T04:11:40.126136+01:00","level":"INFO","msg":"shutdown_signal_received","subsystem":"gateway"}
+{"time":"2026-03-06T04:11:40.627833+01:00","level":"INFO","msg":"server_shutdown_complete","subsystem":"gateway"}

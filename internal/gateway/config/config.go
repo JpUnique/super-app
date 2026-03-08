@@ -16,12 +16,16 @@ type GatewayConfig struct {
 
 	APIKeyHeader string `mapstructure:"api_key_header"`
 	JWTHeader    string `mapstructure:"jwt_header"`
+	RoutesFile  string `mapstructure:"routes_file"`
 }
 
 func Load() GatewayConfig {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./internal/gateway/config")
+    viper.AddConfigPath("../internal/gateway/config")
+    viper.AddConfigPath(".")
+
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("config error: %v", err)
@@ -31,6 +35,10 @@ func Load() GatewayConfig {
 	if err := viper.Unmarshal(&cfg); err != nil {
 		log.Fatalf("config parse error: %v", err)
 	}
+
+    if cfg.RoutesFile == "" {
+        cfg.RoutesFile = "./internal/gateway/proxy/routes.yaml"
+    }
 
 	return cfg
 }
